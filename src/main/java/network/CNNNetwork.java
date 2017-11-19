@@ -2,6 +2,7 @@ package network;
 
 import exception.CNNLayerException;
 import exception.InvalidShapeException;
+import helpers.ConvolutionHelper;
 import network.model.CNNConvolutionLayer;
 import interfaces.network.CNNLayer;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,6 +38,9 @@ public class CNNNetwork {
         });
     }
 
+    public void recognize(double[] shape) {
+
+    }
 
 
     public CNNNetworkBuilder builder() {

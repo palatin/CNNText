@@ -1,7 +1,7 @@
 package network.model;
 
 import interfaces.network.CNNLayer;
-import network.ConvolutionHelper;
+import helpers.ConvolutionHelper;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;

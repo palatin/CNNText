@@ -1,7 +1,7 @@
 package network.model;
 
 import exception.CNNLayerException;
-import network.SubSamplingHelper;
+import helpers.SubSamplingHelper;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;

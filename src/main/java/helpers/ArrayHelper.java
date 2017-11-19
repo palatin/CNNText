@@ -1,5 +1,7 @@
 package helpers;
 
+import java.util.ArrayList;
+
 public class ArrayHelper {
 
 
@@ -23,4 +25,44 @@ public class ArrayHelper {
 
         return res;
     }
+
+    /**transform arraylist of two-dim. doubles to one-dim double array
+     * @param values
+     * @return
+     */
+    public static double[] flatten(ArrayList<double[][]> values) {
+
+        double[] arr = new double[values.size() * values.get(0).length * values.get(0)[0].length];
+
+        for (int i = 0; i < values.size(); i++) {
+
+            double[] temp = flatten(values.get(i));
+
+            for (int j = 0; j < temp.length; j++) {
+                arr[i*temp.length + j] = temp[j];
+            }
+
+        }
+
+        return arr;
+    }
+
+    /**transform two-dim. double array to one-dim double array
+     * @param values
+     * @return
+     */
+    public static double[] flatten(double[][] values) {
+
+        double[] arr = new double[values.length * values[0].length];
+
+        for (int i = 0; i < values.length; i++) {
+            for (int j = 0; j < values[0].length; j++) {
+                arr[i*values[0].length + j] = values[i][j];
+            }
+        }
+
+        return arr;
+    }
+
+
 }

@@ -3,7 +3,7 @@ package network.model;
 import exception.CNNLayerException;
 import exception.InvalidPoolingWindowException;
 import interfaces.network.CNNLayer;
-import network.SubSamplingHelper;
+import helpers.SubSamplingHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;

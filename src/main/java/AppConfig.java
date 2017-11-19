@@ -1,4 +1,4 @@
-import network.ConvolutionHelper;
+import helpers.ConvolutionHelper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
