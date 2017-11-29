@@ -64,5 +64,16 @@ public class ArrayHelper {
         return arr;
     }
 
+    public static double dotProduct(double[] x, double[] y) {
+
+        double sum = 0;
+
+        for (int i = 0; i < x.length; i++) {
+            sum += x[i] * y[i];
+        }
+
+        return sum;
+    }
+
 
 }

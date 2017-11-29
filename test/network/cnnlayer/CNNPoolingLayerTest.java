@@ -1,4 +1,4 @@
-package network.model;
+package network.cnnlayer;
 
 import exception.CNNLayerException;
 import helpers.SubSamplingHelper;

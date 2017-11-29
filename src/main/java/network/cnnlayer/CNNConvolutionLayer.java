@@ -1,14 +1,14 @@
-package network.model;
+package network.cnnlayer;
 
 
 
-import interfaces.network.CNNLayer;
+import exception.CNNLayerException;
 import helpers.ConvolutionHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
 
-public class CNNConvolutionLayer implements CNNLayer {
+public class CNNConvolutionLayer extends CNNLayer {
 
     private ArrayList<double[][]> convCores;
 
@@ -63,7 +63,16 @@ public class CNNConvolutionLayer implements CNNLayer {
     }
 
 
-    public ArrayList<double[][]> processShapes(ArrayList<double[][]> shapes) {
-        return convolution(shapes);
+    public ArrayList<double[][]> processShapes(ArrayList<double[][]> shapes) throws CNNLayerException {
+
+        if(super.nextLayer == null)
+            return convolution(shapes);
+
+        return super.nextLayer.processShapes(convolution(shapes));
+    }
+
+    @Override
+    public void learn(double[] errors) {
+
     }
 }

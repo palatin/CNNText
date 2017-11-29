@@ -1,6 +1,5 @@
-package network.model;
+package network.cnnlayer;
 
-import interfaces.network.CNNLayer;
 import helpers.ConvolutionHelper;
 import org.junit.Test;
 import org.junit.runner.RunWith;

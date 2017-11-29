@@ -1,14 +1,13 @@
-package network.model;
+package network.cnnlayer;
 
 import exception.CNNLayerException;
 import exception.InvalidPoolingWindowException;
-import interfaces.network.CNNLayer;
 import helpers.SubSamplingHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
 
-public class CNNPoolingLayer implements CNNLayer {
+public class CNNPoolingLayer extends CNNLayer {
 
 
 
@@ -67,6 +66,15 @@ public class CNNPoolingLayer implements CNNLayer {
 
         shapes = null;
 
-        return newShapes;
+        if(super.nextLayer == null)
+            return newShapes;
+
+        return super.nextLayer.processShapes(newShapes);
+    }
+
+    @Override
+    public void learn(double[] errors) {
+        if(super.previousLayer != null)
+            previousLayer.learn(errors);
     }
 }
