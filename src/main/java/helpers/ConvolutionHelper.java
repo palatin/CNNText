@@ -1,43 +1,92 @@
 package helpers;
 
+
+
+
+
 public class ConvolutionHelper {
 
+    public enum ConvType {full,valid}
 
-    /**
-     * @param shape - shape generally 5x5
-     * @param convCore - convolution core same size as shape
-     * @return convolution value
-     */
-    public double convolution(double[][] shape, double[][] convCore) {
-        int size = shape[0].length;
-        double sum = 0;
-        for (int i = 0; i < size; i++) {
-            for (int j = 0; j < size; j++) {
-                sum += shape[i][j] * convCore[i][j];
-            }
+
+
+    public static double[][] convnFull(double[][] matrix,
+                                       final double[][] kernel) {
+        int m = matrix.length;
+        int n = matrix[0].length;
+        final int km = kernel.length;
+        final int kn = kernel[0].length;
+
+        final double[][] extendMatrix = new double[m + 2 * (km - 1)][n + 2
+                * (kn - 1)];
+        for (int i = 0; i < m; i++) {
+            for (int j = 0; j < n; j++)
+                extendMatrix[i + km - 1][j + kn - 1] = matrix[i][j];
         }
 
-        return sum;
+        return convnValid(extendMatrix, kernel);
+    }
+
+    public static double[][] convnValid(final double[][] matrix,
+                                        double[][] kernel) {
+
+        int m = matrix.length;
+        int n = matrix[0].length;
+        final int km = kernel.length;
+        final int kn = kernel[0].length;
+
+        int kns = n - kn + 1;
+
+        final int kms = m - km + 1;
+
+        final double[][] outMatrix = new double[kms][kns];
+
+        for (int i = 0; i < kms; i++) {
+            for (int j = 0; j < kns; j++) {
+                double sum = 0.0;
+                for (int ki = 0; ki < km; ki++) {
+                    for (int kj = 0; kj < kn; kj++)
+                        sum += matrix[i + ki][j + kj] * kernel[ki][kj];
+                }
+                outMatrix[i][j] = sum;
+
+            }
+        }
+        return outMatrix;
+
     }
 
 
-    /**use for sliding window method
-     * @param shape - shape generally 5x5
-     * @param convCore - convolution core same size as shape
-     * @param startRow - current row index
-     * @param startColumn - current column index
-     * @return convolution value
-     */
-    public double convolution(double[][] shape, double[][] convCore, int startRow, int startColumn) {
+    public double[][] randomizeFilter(int size) {
 
-        double sum = 0;
-        int size = convCore[0].length;
+        double[][] weights = new double[size][size];
+
         for (int i = 0; i < size; i++) {
             for (int j = 0; j < size; j++) {
-                sum += shape[i + startRow][j + startColumn] * convCore[i][j];
+                weights[i][j] = Math.random();
             }
         }
 
-        return sum;
+        return weights;
+    }
+
+    public double[][] getConvoluteShape(double[][] shape, double[][] filter, ConvType type) {
+
+        if(shape.length < filter.length) {
+            double[][] temp = shape;
+            shape = filter;
+            filter = temp;
+        }
+
+        double[][] newShape = null;
+        if(type.equals(ConvType.full)) {
+            newShape = convnFull(shape, filter);
+        }
+        else if(type.equals(ConvType.valid)) {
+            newShape = convnValid(shape, filter);
+
+
+        }
+        return newShape;
     }
 }

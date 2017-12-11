@@ -3,76 +3,163 @@ package network.cnnlayer;
 
 
 import exception.CNNLayerException;
+import helpers.ArrayHelper;
 import helpers.ConvolutionHelper;
+import network.cnnlayer.model.FeatureMap;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
 
 public class CNNConvolutionLayer extends CNNLayer {
 
-    private ArrayList<double[][]> convCores;
-
 
     private final ConvolutionHelper convolutionHelper;
 
-    //indicates pares - map-filter, where rows - maps, columns - number of filter
-    private int[][] convCoresIndexes;
 
+
+
+    private ArrayList<double[][]> filters;
+
+
+    private double learningRate;
 
     @Autowired
-    public CNNConvolutionLayer(ArrayList<double[][]> convCores, int[][] convCoresIndexes, ConvolutionHelper convolutionHelper) {
-        this.convCores = convCores;
-        this.convCoresIndexes = convCoresIndexes;
+    public CNNConvolutionLayer(int maps, int filterSize, ConvolutionHelper convolutionHelper, double learningRate) {
+
+        filters = new ArrayList<>();
+
+        //randomize all filters
+        for (int i = 0; i < maps; i++) {
+            filters.add(convolutionHelper.randomizeFilter(filterSize));
+        }
+
 
         this.convolutionHelper = convolutionHelper;
+        this.learningRate = learningRate;
+
+    }
+
+    @Autowired
+    public CNNConvolutionLayer(ArrayList<double[][]> filters, ConvolutionHelper convolutionHelper, double learningRate) {
+
+        this.filters = filters;
+
+        this.convolutionHelper = convolutionHelper;
+        this.learningRate = learningRate;
+
     }
 
 
-    private int[] getConvCoresIndexes(int shapeIndex) {
-        return convCoresIndexes[shapeIndex];
-    }
 
-    private ArrayList<double[][]> convolution(ArrayList<double[][]> shapes) {
+    private ArrayList<FeatureMap> convolution(ArrayList<FeatureMap> featureMaps) {
 
-        ArrayList<double[][]> newShapes = new ArrayList<>();
-        for (int i = 0; i < shapes.size(); i++) {
-            double[][] shape = shapes.get(i);
 
-            for (int filterIndex: getConvCoresIndexes(i)) {
-                double[][] convoluteShape = getConvoluteShape(shape, convCores.get(filterIndex));
-                newShapes.add(convoluteShape);
+        ArrayList<FeatureMap> maps = new ArrayList<>(filters.size());
+
+
+        for (double[][] filter: filters) {
+
+            ArrayList<FeatureMap> temp = new ArrayList<>(super.featureMaps.size());
+
+            for (FeatureMap fm: featureMaps) {
+                FeatureMap featureMap = new FeatureMap();
+
+                featureMap.setOutputs(convolutionHelper.getConvoluteShape(fm.getOutputs(), filter, ConvolutionHelper.ConvType.valid));
+
+                temp.add(featureMap);
             }
 
+            FeatureMap featureMap = new FeatureMap();
+
+            featureMap.setInputs(FeatureMap.sum(temp));
+            featureMap.setOutputs(activate(featureMap.getInputs()));
+
+            maps.add(featureMap);
         }
 
-        return newShapes;
-    }
+        return maps;
 
-    private double[][] getConvoluteShape(double[][] shape, double[][] filter) {
-
-        int length = shape.length - filter.length + 1;
-        double[][] newShape = new double[length][length];
-
-        for (int j = 0; j < length; j++) {
-            for (int k = 0; k < length; k++) {
-                newShape[j][k] = convolutionHelper.convolution(shape, filter, j, k);
-            }
-        }
-
-        return newShape;
     }
 
 
-    public ArrayList<double[][]> processShapes(ArrayList<double[][]> shapes) throws CNNLayerException {
+
+
+
+    public ArrayList<FeatureMap> process(ArrayList<FeatureMap> maps) throws CNNLayerException {
+
+        this.featureMaps = maps;
+
+        ArrayList<FeatureMap> newMaps = convolution(maps);
+        
 
         if(super.nextLayer == null)
-            return convolution(shapes);
+            return newMaps;
 
-        return super.nextLayer.processShapes(convolution(shapes));
+        return super.nextLayer.process(newMaps);
     }
 
     @Override
-    public void learn(double[] errors) {
+    public double[][] learn(ArrayList<FeatureMap> featureMaps) {
+
+
+        calculateErrors(featureMaps);
+
+        recountWeights(featureMaps);
+
+        if(previousLayer != null) {
+            return previousLayer.learn(super.featureMaps);
+        }
+
+        return super.featureMaps.get(0).getErrors();
+
 
     }
+
+    private void calculateErrors(ArrayList<FeatureMap> featureMaps) {
+
+
+        for (int i = 0; i < super.featureMaps.size(); i++) {
+
+
+            ArrayList<FeatureMap> temp = new ArrayList<>(featureMaps.size());
+
+
+            for (int j = 0; j < featureMaps.size(); j++) {
+                FeatureMap featureMap = new FeatureMap();
+                featureMap.setErrors(ArrayHelper.matrixMultiplication(convolutionHelper.getConvoluteShape(featureMaps.get(j).getErrors(),
+                        ArrayHelper.rotateSquareMatrixBy180Degree(filters.get(i)), ConvolutionHelper.ConvType.full),
+                        activateDerivative(super.featureMaps.get(i).getInputs())));
+                temp.add(featureMap);
+            }
+
+            super.featureMaps.get(i).setErrors(FeatureMap.sumErrors(temp));
+        }
+
+    }
+
+
+
+    private void recountWeights(ArrayList<FeatureMap> maps) {
+
+
+       double[][] prevLayer = FeatureMap.sum(super.featureMaps);
+
+        for (int i = 0; i < filters.size(); i++) {
+            double[][] gradients = ArrayHelper.rotateSquareMatrixBy180Degree(
+                    convolutionHelper.getConvoluteShape(prevLayer,
+                            ArrayHelper.rotateSquareMatrixBy180Degree(maps.get(i).getErrors()), ConvolutionHelper.ConvType.valid));
+
+            for (int j = 0; j < gradients.length; j++) {
+                for (int k = 0; k < gradients[0].length; k++) {
+                    filters.get(i)[j][k] = filters.get(i)[j][k] + learningRate*gradients[j][k];
+                }
+            }
+        }
+
+    }
+
+
+
+
+
 }

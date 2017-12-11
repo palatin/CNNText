@@ -4,18 +4,40 @@ public class LogisticPerceptronLayer extends PerceptronLayer {
 
     private static final double e  = 2.71828182846;
 
-    public LogisticPerceptronLayer(Neuron[] neurons, double learningRate, boolean hasBiasNeuron) {
-        super(neurons, learningRate, hasBiasNeuron);
+    public LogisticPerceptronLayer(Neuron[] neurons, double learningRate) {
+        super(neurons, learningRate);
     }
 
 
-    @Override
-    protected double activate(double value) {
+
+    private double activate(double value) {
         return 1 / (1 + Math.pow(e, -value));
     }
 
     @Override
-    protected double activateDerivative(double value) {
-        return activate(value)*(1 - activate(value));
+    protected double[] activate(double[] layerInputs) {
+
+        double[] newValuers = new double[layerInputs.length];
+
+        for (int i = 0; i < newValuers.length; i++) {
+            newValuers[i] = activate(layerInputs[i]);
+        }
+
+        return newValuers;
+
     }
+
+    @Override
+    protected double[] activateDerivative(double[] layerInputs) {
+
+        double[] newValuers = new double[layerInputs.length];
+
+        for (int i = 0; i < newValuers.length; i++) {
+            newValuers[i] = activate(layerInputs[i])*(1 - activate(layerInputs[i]));
+        }
+
+        return newValuers;
+
+    }
+
 }

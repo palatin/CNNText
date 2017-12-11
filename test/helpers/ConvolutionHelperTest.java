@@ -8,28 +8,27 @@ public class ConvolutionHelperTest {
 
 
     @Test
-    public void convolution() {
+    public void convolutionTestFull() {
 
-        double[][] shape = {{5,8,7}, {4,2,5}, {3,8,9}};
+        double[][] shape = {{8,1,6}, {3,5,7}, {4,9,2}};
 
-        double[][] core = {{5,7,2}, {5,3,6}, {3,3,-1}};
+        double[][] core = {{1,1}, {1,1}};
 
-        int res = 175;
 
-        Assert.assertEquals(res, new ConvolutionHelper().convolution(shape,core), 0);
+        Assert.assertArrayEquals(new double[][]{{8,9,7,6}, {11,17,19,13}, {7,21,23,9}, {4,13,11,2}},
+                new ConvolutionHelper().getConvoluteShape(shape, core, ConvolutionHelper.ConvType.full));
     }
 
     @Test
-    public void convolutionWithRange() {
+    public void convolutionTestValid() {
 
+        double[][] shape = {{8,1,6}, {3,5,7}, {4,9,2}};
 
-        double[][] shape = {{5,8,7}, {4,2,5}, {3,8,9}};
+        double[][] core = {{1,1}, {1,1}};
 
-        double[][] core = {{5,3}, {3,-1}};
-
-        int res = 27;
-
-        Assert.assertEquals(res, new ConvolutionHelper().convolution(shape,core, 1, 0), 0);
-
+        Assert.assertArrayEquals(new double[][]{{17,19}, {21,23}},
+                new ConvolutionHelper().getConvoluteShape(shape, core, ConvolutionHelper.ConvType.valid));
     }
+
+
 }

@@ -1,9 +1,7 @@
 package network;
 
 import helpers.ArrayHelper;
-import network.perceptronlayer.LogisticPerceptronLayer;
-import network.perceptronlayer.Neuron;
-import network.perceptronlayer.PerceptronLayer;
+import network.perceptronlayer.*;
 
 import java.util.ArrayList;
 
@@ -12,6 +10,8 @@ public class Perceptron {
 
     private PerceptronLayer firstLayer;
     private PerceptronLayer lastLayer;
+
+    public static enum LayerType {Logistic, SoftMax, RELU}
 
     public double[] recognize(double[] values) {
 
@@ -32,6 +32,21 @@ public class Perceptron {
 
         }
 
+    }
+
+    public double[] learn(double[] values, double[] results) {
+
+        double[] actualProb = recognize(values);
+
+        lastLayer.learn(findErrors(actualProb, results));
+
+        return actualProb;
+
+    }
+
+
+    public double[] getErrorsFromFirstLayer() {
+        return firstLayer.getErrors();
     }
 
     private double[] findErrors(double[] actual, double[] expected) {
@@ -66,31 +81,43 @@ public class Perceptron {
          * @param hasBiasNeuron - if true will created "bias neuron"
          * @return
          */
-        public PerceptronBuilder logisticPerceptronLayer(double[][] weights, boolean hasBiasNeuron) {
+        public PerceptronBuilder logisticPerceptronLayer(double[][] weights,double[][] biasesWeights, boolean hasBiasNeuron) {
 
 
-            Neuron[] neurons = neuronsFromWeights(weights);
+            //Neuron[] neurons = neuronsFromWeights(weights);
 
-            configureLayer(new LogisticPerceptronLayer(neurons, learningRate, hasBiasNeuron));
+            //configureLayer(new LogisticPerceptronLayer(neurons, learningRate, hasBiasNeuron));
 
             return this;
         }
 
         /**
          * @param count - count of neurons
-         * @param hasBiasNeuron - if true will created "bias neuron"
+         * @param bias - count of biases
          * @return
          */
-        public PerceptronBuilder logisticPerceptronLayer(int count, boolean hasBiasNeuron) {
+        public PerceptronBuilder perceptronLayer(int count, int bias, LayerType layerType) {
 
 
-            Neuron[] neurons = new Neuron[count];
+            Neuron[] neurons = new Neuron[count + bias];
 
             for (int i = 0; i < count; i++) {
                 neurons[i] = new Neuron();
             }
 
-            configureLayer(new LogisticPerceptronLayer(neurons, learningRate, hasBiasNeuron));
+            for (int i = 0; i < bias; i++) {
+                neurons[i + count] = new BiasNeuron();
+            }
+
+            PerceptronLayer perceptronLayer = null;
+
+            switch (layerType) {
+                case Logistic: perceptronLayer = new LogisticPerceptronLayer(neurons, learningRate); break;
+                case SoftMax: perceptronLayer = new SoftMaxPerceptronLayer(neurons, learningRate); break;
+                case RELU: perceptronLayer = new ReLUPerceptronLayer(neurons, learningRate); break;
+            }
+
+            configureLayer(perceptronLayer);
 
             return this;
         }
@@ -110,8 +137,10 @@ public class Perceptron {
          */
         private void configureLayer(PerceptronLayer layer) {
 
-            if(firstLayer == null)
-                firstLayer = layer;
+            if(firstLayer == null) {
+                firstLayer = new InputPerceptronLayer();
+                lastLayer = firstLayer;
+            }
 
             if(lastLayer != null) {
                 layer.setPreviousLayer(lastLayer);

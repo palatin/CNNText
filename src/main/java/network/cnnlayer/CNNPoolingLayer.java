@@ -2,7 +2,10 @@ package network.cnnlayer;
 
 import exception.CNNLayerException;
 import exception.InvalidPoolingWindowException;
+import helpers.ArrayHelper;
+import helpers.ConvolutionHelper;
 import helpers.SubSamplingHelper;
+import network.cnnlayer.model.FeatureMap;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
@@ -13,11 +16,24 @@ public class CNNPoolingLayer extends CNNLayer {
 
     private final SubSamplingHelper subSamplingHelper;
 
+    private ConvolutionHelper convolutionHelper;
+
+
+
     int poolingWindow = 2;
 
     @Autowired
-    public CNNPoolingLayer(SubSamplingHelper subSamplingHelper) {
+    public CNNPoolingLayer(SubSamplingHelper subSamplingHelper, ConvolutionHelper convolutionHelper) {
         this.subSamplingHelper = subSamplingHelper;
+        this.convolutionHelper = convolutionHelper;
+
+    }
+
+    @Autowired
+    public CNNPoolingLayer(ArrayList<double[][]> filters, SubSamplingHelper subSamplingHelper, ConvolutionHelper convolutionHelper) {
+        this.subSamplingHelper = subSamplingHelper;
+        this.convolutionHelper = convolutionHelper;
+        //TODO filters
     }
 
     /**
@@ -31,12 +47,14 @@ public class CNNPoolingLayer extends CNNLayer {
         this.poolingWindow = poolingWindow;
     }
 
-    private double[][] poolShape(double[][] shape) throws InvalidPoolingWindowException {
+    private double[][] poolMap(FeatureMap map) throws InvalidPoolingWindowException {
+
+        double[][] shape = map.getOutputs();
 
         int length = shape.length / poolingWindow;
 
-        if(length < 0 || length % 2 != 0)
-            throw new InvalidPoolingWindowException("Pooling window " + poolingWindow + "is invalid for shape with size " + shape.length + "x" + shape.length);
+        if(length < 0) //|| length % 2 != 0) //FIXME
+            throw new InvalidPoolingWindowException("Pooling window " + poolingWindow + " is invalid for shape with size " + shape.length + "x" + shape.length);
 
         double[][] newShape = new double[length][length];
 
@@ -46,6 +64,7 @@ public class CNNPoolingLayer extends CNNLayer {
             for (int startColumn = 0, j=0; j < length; startColumn+=poolingWindow, j++) {
 
                 newShape[i][j] = subSamplingHelper.subsampling(shape, startRow, startColumn, poolingWindow);
+
             }
 
         }
@@ -55,26 +74,51 @@ public class CNNPoolingLayer extends CNNLayer {
     }
 
     @Override
-    public ArrayList<double[][]> processShapes(ArrayList<double[][]> shapes) throws CNNLayerException {
+    public ArrayList<FeatureMap> process(ArrayList<FeatureMap> maps) throws CNNLayerException {
 
-        ArrayList<double[][]> newShapes = new ArrayList<>();
+        super.featureMaps = maps;
 
-        for (double[][] shape: shapes) {
-            newShapes.add(poolShape(shape));
+        ArrayList<FeatureMap> newMaps = new ArrayList<>();
+
+
+        for (int i = 0; i < maps.size(); i++) {
+
+            FeatureMap featureMap = new FeatureMap();
+            featureMap.setInputs(poolMap(maps.get(i)));
+            featureMap.setOutputs(activate(featureMap.getInputs()));
+            newMaps.add(featureMap);
         }
 
-
-        shapes = null;
-
         if(super.nextLayer == null)
-            return newShapes;
+            return newMaps;
 
-        return super.nextLayer.processShapes(newShapes);
+        return super.nextLayer.process(newMaps);
+    }
+
+
+
+    private void calculateErrors(ArrayList<FeatureMap> maps) {
+
+        int size = super.featureMaps.get(0).getOutputs().length;
+        for (int i = 0; i < maps.size(); i++) {
+            super.featureMaps.get(i).setErrors(ArrayHelper.matrixMultiplication(ArrayHelper.upsample(maps.get(i).getErrors(), size), featureMaps.get(i).getOutputs()));
+        }
+
     }
 
     @Override
-    public void learn(double[] errors) {
-        if(super.previousLayer != null)
-            previousLayer.learn(errors);
+    public double[][] learn(ArrayList<FeatureMap> maps) {
+
+
+        calculateErrors(maps);
+
+        if(super.previousLayer != null) {
+
+
+            return previousLayer.learn(super.featureMaps);
+        }
+
+        return maps.get(0).getErrors();
+
     }
 }

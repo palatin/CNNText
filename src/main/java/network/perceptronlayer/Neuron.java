@@ -4,9 +4,7 @@ public class Neuron {
 
     private double[] weights;
 
-    private double output;
-
-
+    private double input;
 
 
     private double error;
@@ -19,6 +17,7 @@ public class Neuron {
 
     public double[] getWeights() {
 
+
         return weights;
     }
 
@@ -26,19 +25,23 @@ public class Neuron {
         this.weights = weights;
     }
 
-    public void setOutput(double output) {
-        this.output = output;
+    public void setInput(double input) {
+        this.input = input;
     }
 
-    public double getOutput() {
-        return output;
+    public double getInput() {
+        return input;
     }
 
 
-
-    public void recountWeights(double learningRate, double deltas[]) {
+    /**
+     * @param learningRate
+     * @param outs - outs from previous layer
+     * @param inputDer - Derivative input from current neuron
+     */
+    public void recountWeights(double learningRate, double outs[], double inputDer) {
         for (int i = 0; i < getWeights().length; i++) {
-            getWeights()[i] = getWeights()[i] + output * deltas[i] * learningRate;
+            weights[i] = weights[i] + learningRate * error * inputDer * outs[i];
         }
     }
 

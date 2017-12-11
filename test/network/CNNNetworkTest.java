@@ -25,9 +25,7 @@ public class CNNNetworkTest {
     public void recognize() throws Exception {
 
 
-        CNNNetwork.builder(convolutionHelper, subSamplingHelper).poolingLayer()
-                .build()
-                .recognize(new double[][] {{1,0,2,3}, {4,6,6,8}, {3,1,1,0}, {1,2,2,4}});
+
 
     }
 

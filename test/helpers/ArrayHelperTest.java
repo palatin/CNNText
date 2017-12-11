@@ -7,7 +7,30 @@ import java.util.ArrayList;
 import static org.junit.Assert.*;
 
 public class ArrayHelperTest {
+    @Test
+    public void flatten() throws Exception {
+    }
 
+    @Test
+    public void flatten1() throws Exception {
+    }
+
+    @Test
+    public void kroneckerProduct() throws Exception {
+        assertArrayEquals(new double[][]{{0,5,0,10}, {6,7,12,14}, {0,15,0,20}, {18,21,24,28}},
+                ArrayHelper.kroneckerProduct(new double[][]{{1,2}, {3,4}}, new double[][]{{0,5}, {6,7}}));
+    }
+
+    @Test
+    public void dotProduct() throws Exception {
+    }
+
+    @Test
+    public void rotateSquareMatrixBy180Degree() throws Exception {
+
+        assertArrayEquals(new double[][]{{9,8,7}, {6,5,4}, {3,2,1}} ,ArrayHelper.rotateSquareMatrixBy180Degree(new double[][]{{1,2,3}, {4,5,6}, {7,8,9}}));
+
+    }
 
 
     @Test
