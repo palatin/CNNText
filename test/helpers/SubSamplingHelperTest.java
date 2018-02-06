@@ -1,5 +1,6 @@
-package network;
+package helpers;
 
+import org.junit.Assert;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
@@ -12,7 +13,7 @@ public class SubSamplingHelperTest {
 
         double[][] shape = {{5,8,7}, {4,2,5}, {3,10,9}};
 
-        assertEquals(10, new SubSamplingHelper().subsampling(shape), 0);
+        Assert.assertEquals(10, new SubSamplingHelper().subsampling(shape), 0);
 
     }
 
